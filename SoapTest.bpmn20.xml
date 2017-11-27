@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" 
+xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:flowable="http://flowable.org/bpmn" 
+xmlns:hello="http://test.fico.com/" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" 
+id="definitions" targetNamespace="http://test.fico.com/" xmlns:tns="http://test.fico.com/">
+ 
+  <import importType="http://schemas.xmlsoap.org/wsdl/"
+      location="http://localhost:9090/SimpleSOAPExample/services/HelloWorldImpl?wsdl" namespace="http://test.fico.com/" />
+ 
+  <process id="staticScriptEngine" isExecutable="true">
+    <startEvent id="theStart"></startEvent>
+    <sequenceFlow id="flow1" sourceRef="theStart" targetRef="theScriptTask"></sequenceFlow>
+    <scriptTask id="theScriptTask" name="Execute script" scriptFormat="groovy" activiti:autoStoreVariables="false">
+      <script><![CDATA[out:println "static script task test executed.... " ;]]></script>
+    </scriptTask>
+    <sequenceFlow id="flow2" sourceRef="theScriptTask" targetRef="servicetask1"></sequenceFlow>
+   
+    <serviceTask id="servicetask1" name="Service Task" implementation="##WebService" operationRef="tns:sayHelloWorldOperation">
+      <dataOutputAssociation>
+      	<sourceRef>sayHelloWorldReturn</sourceRef><!-- name of an element of the output message -->
+      	<targetRef>OutputVariable</targetRef><!-- name of an Activiti variable -->
+      </dataOutputAssociation>           
+    </serviceTask>
+   
+    <sequenceFlow id="flow3" sourceRef="servicetask1" targetRef="theEnd"></sequenceFlow>
+    <endEvent id="theEnd"></endEvent>
+  </process>
+  <itemDefinition id="sayHelloWorldReturn" structureRef="string" />
+  <itemDefinition id="OutputVariable" structureRef="string" />
+  <interface name="HelloWorld Interface" implementationRef="hello:HelloWorldImpl">
+    <operation id="sayHelloWorldOperation" name="sayHelloWorld Operation" implementationRef="hello:sayHelloWorld">
+      <inMessageRef>tns:sayHelloWorldRequestMessage</inMessageRef>
+      <outMessageRef>tns:sayHelloWorldResponseMessage</outMessageRef>
+    </operation>
+  </interface>
+  <message id="sayHelloWorldRequestMessage" itemRef="tns:sayHelloWorldRequestItem" />
+  <message id="sayHelloWorldResponseMessage" itemRef="tns:sayHelloWorldResponseItem" />
+  <itemDefinition id="sayHelloWorldRequestItem" structureRef="hello:sayHelloWorldRequest" />
+  <itemDefinition id="sayHelloWorldResponseItem" structureRef="hello:sayHelloWorldResponse" />
+</definitions>
